@@ -1,21 +1,51 @@
+// Entry: one-line office joke for the laugh-off bounty.
+// Template from the playbook: state the rule, have the machine violate
+// it literally, land the consequence flat. Here the rule is "the printer
+// is out of toner"; the printer violates it by burning toner on a 40-page
+// color error report that proves it is not out of toner at all.
 import { mkdirSync, writeFileSync } from "node:fs";
 
-// One-line office joke, playbook template: rule -> literal violation ->
-// flat consequence. The printer claims it has no toner, then spends toner
-// proving it — in color, so it wastes the very thing it says it lacks.
-const lines = [
-  "I told the office printer it was out of toner, so it printed a 40-page error report, in color, to prove me wrong.",
-];
+// The joke itself — one sentence, kept verbatim.
+const JOKE =
+  "I told the office printer it was out of toner, so it printed a 40-page error report, in color, to prove me wrong.";
 
-const text = lines.join("\n") + "\n";
+const MAX_CHARS = 200;
+const MIN_CHARS = 1;
+const EXPECTED_LINES = 1;
+const OUTPUT_DIR = "/output";
+const OUTPUT_FILE = "/output/entry.txt";
+const OUTPUT_SUFFIX = "\n";
 
-// Guard: the gate requires 1-200 characters and exactly one line.
-const codePoints = [...text].length;
-if (codePoints < 1 || codePoints > 200) {
-  throw new Error(`entry must be 1-200 characters, got ${codePoints}`);
+// Gate check 1: the entry must be a single line, no line breaks inside.
+function assertSingleLine(value: string): void {
+  const parts = value.split("\n");
+  if (parts.length !== EXPECTED_LINES) {
+    throw new Error(`entry must be exactly ${EXPECTED_LINES} line, got ${parts.length}`);
+  }
 }
-if (lines.length !== 1 || lines.some((line) => !line.trim())) {
-  throw new Error("entry must be exactly one non-empty line");
+
+// Gate check 2: the entry must not be empty.
+function assertNonEmpty(value: string): void {
+  if (value.trim().length === 0) {
+    throw new Error("entry must not be empty");
+  }
 }
-mkdirSync("/output", { recursive: true });
-writeFileSync("/output/entry.txt", text, "utf8");
+
+// Gate check 3: character count (code points) must sit inside 1-200.
+function assertLengthInRange(value: string): void {
+  const count = Array.from(value).length;
+  if (count < MIN_CHARS || count > MAX_CHARS) {
+    throw new Error(
+      `entry must be ${MIN_CHARS}-${MAX_CHARS} characters, got ${count}`,
+    );
+  }
+}
+
+assertSingleLine(JOKE);
+assertNonEmpty(JOKE);
+assertLengthInRange(JOKE);
+
+const payload = JOKE + OUTPUT_SUFFIX;
+
+mkdirSync(OUTPUT_DIR, { recursive: true });
+writeFileSync(OUTPUT_FILE, payload, "utf8");
